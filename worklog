@@ -1,0 +1,6 @@
+
+* IDEA:
+Figure out how to establish a TCP socket with the ESP and ping it basic commands
+ESP will then send the data to the Arduino via UART
+Arduino processes the data then sends back to the ESP
+ESP sends back response over TCP
