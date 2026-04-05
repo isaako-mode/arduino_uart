@@ -3,4 +3,64 @@
 Figure out how to establish a TCP socket with the ESP and ping it basic commands
 ESP will then send the data to the Arduino via UART
 Arduino processes the data then sends back to the ESP
-ESP sends back response over TCP
+nESP sends back response over TCP
+
+* UART Setup:
+
+** Registers Needed:
+UBRR0
+UCSR0B -> configures TX and RX
+UCSR0C
+
+UDR0 -> TX write register
+
+
+** Example UART init
+#+NAME: UART init example code
+#+BEGIN_SRC C
+#define FOSC 1843200 // Clock Speed
+#define BAUD 9600
+#define MYUBRR FOSC/16/BAUD-1
+void main(void)
+{
+...
+USART_Init(MYUBRR)
+...
+}
+void USART_Init(unsigned int ubrr)
+{
+/*Set baud rate */
+UBRR0H = (unsigned char)(ubrr>>8);
+UBRR0L = (unsigned char)ubrr;
+Enable receiver and transmitter */
+UCSR0B = (1<<RXEN0)|(1<<TXEN0);
+/* Set frame format: 8data, 2stop bit */
+UCSR0C = (1<<USBS0)|(3<<UCSZ00);
+}
+#+END_SRC
+
+** UART Send example
+#+NAME: UART init example code
+#+BEGIN_SRC C
+ void USART_Transmit(unsigned int data) {
+   /* Wait for empty transmit buffer */
+   while (!(UCSRnA & (1<<UDREn)))) {
+   /* Copy 9th bit to TXB8 */
+     UCSRnB &= ~(1<<TXB8);
+     if (data & 0x0100)
+       UCSRnB |= (1<<TXB8);
+     /* Put data into buffer, sends the data */
+     UDRn = data;
+} 
+#+END_SRC
+** Set Async
+UCSR0C &= ~(1 << UMSEL00) & ~(1 << UMSEL01);
+
+** BAUD Rate Calculation: (I set the BAUD rate to 9600 on the ESP)
+UBRRn = (F_CPU / (16 * BAUD)) - 1
+UBRRn = (16000000 / (16 * 9600)) - 1
+UBRRn ~ *103*
+
+
+
+isaak@kubeTests:~/Arduino/arduino_uart$ git commit "figured out ESP8266 hardware stuff and it now works. Added wo
